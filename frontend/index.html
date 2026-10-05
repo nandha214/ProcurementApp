@@ -1,13 +1,77 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Procurement Standards Recommendation</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test the AI Recommendation Engine</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; background-color: #f8f9fa; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        textarea { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        .result-card { border-left: 4px solid #28a745; background-color: #f4fdf6; padding: 15px; margin-top: 15px; border-radius: 4px; }
+        .rank-badge { background: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        h3 { margin-top: 10px; margin-bottom: 5px; color: #333; }
+        p { margin: 5px 0; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Test the AI Recommendation Engine</h2>
+    <p style="color: #666; font-size: 14px;">Active model: Sentence Transformer (all-MiniLM-L6-v2) + Vector Similarity Search (ChromaDB)</p>
+    
+    <textarea id="searchQuery" rows="3" placeholder="Type a procurement requirement here (e.g., Fire detection and alarm system...)"></textarea>
+    <button onclick="fetchRecommendations()">Search Standards</button>
+
+    <!-- The results will appear inside this div -->
+    <div id="resultsContainer"></div>
+</div>
+
+<script>
+    async function fetchRecommendations() {
+        const query = document.getElementById('searchQuery').value;
+        const resultsDiv = document.getElementById('resultsContainer');
+        
+        if (!query) return alert("Please enter a requirement!");
+
+        resultsDiv.innerHTML = "<p><em>Searching database...</em></p>";
+
+        try {
+            const response = await fetch('/api/recommend/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Note: If Django requires a CSRF token, we add it here. For DRF test endpoints, it often works without it.
+                },
+                body: JSON.stringify({ query: query })
+            });
+
+            const data = await response.json();
+            resultsDiv.innerHTML = ""; // Clear the loading text
+
+            if (data.status === "success" && data.recommendations.length > 0) {
+                // Loop through each standard and create a nice card for it
+                data.recommendations.forEach(rec => {
+                    resultsDiv.innerHTML += `
+                        <div class="result-card">
+                            <span class="rank-badge">Rank ${rec.rank} (Score: ${rec.relevance_score})</span>
+                            <h3>${rec.is_code}</h3>
+                            <p><strong>Title:</strong> ${rec.title}</p>
+                            <p><strong>Status:</strong> ${rec.status} | <strong>Mandatory BIS Cert:</strong> ${rec.mandatory_cert ? 'Yes' : 'No'}</p>
+                        </div>
+                    `;
+                });
+            } else {
+                resultsDiv.innerHTML = "<p>No matching standards found.</p>";
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = "<p style='color:red;'>Error connecting to the AI engine.</p>";
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
 </html>
