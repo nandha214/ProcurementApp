@@ -63,7 +63,35 @@ collection = chroma_client.get_or_create_collection(
 )
 
 
+def sync_dataset_from_s3():
+    """Syncs bis_data.json from Amazon S3 bucket if AWS_S3_BUCKET_NAME is set.
+    Falls back gracefully to bundled local bis_data.json if offline or unconfigured.
+    """
+    bucket_name = os.getenv("AWS_S3_BUCKET_NAME")
+    if not bucket_name:
+        return False, "AWS_S3_BUCKET_NAME not configured; using bundled local dataset"
+    
+    try:
+        import boto3
+        boto_kwargs = {"region_name": os.getenv("AWS_REGION", "ap-southeast-2")}
+        if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
+            boto_kwargs["aws_access_key_id"] = os.getenv("AWS_ACCESS_KEY_ID")
+            boto_kwargs["aws_secret_access_key"] = os.getenv("AWS_SECRET_ACCESS_KEY")
+        
+        s3 = boto3.client("s3", **boto_kwargs)
+        s3.download_file(bucket_name, "bis_data.json", DATA_PATH)
+        msg = f"Synced from s3://{bucket_name}/bis_data.json"
+        print(f"[S3 SUCCESS] {msg}")
+        return True, msg
+    except Exception as e:
+        msg = f"S3 sync warning: {e}. Using local bis_data.json fallback."
+        print(f"[S3 NOTICE] {msg}")
+        return False, msg
+
+
 def _load_standards(json_file_path=None):
+    if json_file_path is None and os.getenv("AWS_S3_BUCKET_NAME"):
+        sync_dataset_from_s3()
     path = json_file_path or DATA_PATH
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
