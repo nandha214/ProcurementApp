@@ -56,7 +56,7 @@ After=network.target
 User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/ProcurementApp/backend
-Environment=\"PATH=/home/ubuntu/ProcurementApp/venv/bin\"
+Environment=\"PATH=/home/ubuntu/ProcurementApp/venv/bin\" \"AWS_REGION=ap-south-1\"
 ExecStart=/home/ubuntu/ProcurementApp/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 backend.wsgi:application
 
 [Install]

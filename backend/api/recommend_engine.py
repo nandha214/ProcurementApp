@@ -73,7 +73,7 @@ def sync_dataset_from_s3():
     
     try:
         import boto3
-        boto_kwargs = {"region_name": os.getenv("AWS_REGION", "ap-southeast-2")}
+        boto_kwargs = {"region_name": os.getenv("AWS_REGION", "ap-south-1")}
         if os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY"):
             boto_kwargs["aws_access_key_id"] = os.getenv("AWS_ACCESS_KEY_ID")
             boto_kwargs["aws_secret_access_key"] = os.getenv("AWS_SECRET_ACCESS_KEY")

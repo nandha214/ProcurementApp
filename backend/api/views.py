@@ -22,7 +22,7 @@ def get_boto3_kwargs():
     discovered via the EC2 metadata service without needing environment variables.
     If AWS_ACCESS_KEY_ID is provided in environment variables, it uses those.
     """
-    region = os.getenv("AWS_REGION", "ap-southeast-2")
+    region = os.getenv("AWS_REGION", "ap-south-1")
     kwargs = {"region_name": region}
     key_id = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -100,7 +100,7 @@ def get_recommendations(request):
 @api_view(["GET"])
 def get_system_status(request):
     """Returns the live status of the AWS-architected services for evaluation & viva."""
-    region = os.getenv("AWS_REGION", "ap-southeast-2")
+    region = os.getenv("AWS_REGION", "ap-south-1")
     s3_bucket = os.getenv("AWS_S3_BUCKET_NAME", "procurement-standards-bucket")
     dynamo_table = os.getenv("DYNAMODB_TABLE_NAME", "bis_search_logs")
 
