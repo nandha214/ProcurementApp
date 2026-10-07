@@ -7,7 +7,10 @@
 
 set -e
 
-echo "=== [0/6] Configuring 2GB Swap Memory (ensures t2.micro Free Tier stability) ==="
+echo "=== [0/6] Freeing /tmp and configuring 2GB Swap Memory ==="
+sudo umount -l /tmp 2>/dev/null || true
+sudo systemctl mask tmp.mount 2>/dev/null || true
+
 if [ ! -f /swapfile ]; then
     sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
     sudo chmod 600 /swapfile
@@ -30,12 +33,17 @@ PROJECT_DIR="/home/ubuntu/ProcurementApp"
 cd "$PROJECT_DIR"
 
 echo "=== [3/6] Setting up Python virtual environment & backend ==="
-mkdir -p /home/ubuntu/tmp
+rm -rf /home/ubuntu/tmp ~/.cache/pip
+mkdir -p /home/ubuntu/tmp /home/ubuntu/.cache/pip
 export TMPDIR=/home/ubuntu/tmp
+export TEMP=/home/ubuntu/tmp
+export TMP=/home/ubuntu/tmp
+
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+pip cache purge || true
+pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu || pip install --no-cache-dir torch
 pip install --no-cache-dir -r backend/requirements.txt
 
 cd backend
