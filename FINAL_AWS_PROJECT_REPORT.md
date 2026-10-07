@@ -130,8 +130,8 @@ Terminal verification confirming Gunicorn service status and `/api/status/` retu
 
 ---
 
-### Figure 6: Live Web Application UI Deployed on AWS (`http://65.2.37.5`)
-Production web user interface live on the public internet.
+### Figure 6: Live Web Application UI with Semantic Search Results & DynamoDB Confirmation
+Production web user interface live at `http://65.2.37.5` recommending standards in real time (`IS 456:2000` in 17.59 ms) with active DynamoDB logging.
 
 ![Live Web Application UI](report_images/screenshot6_web_app_ui.png)
 
