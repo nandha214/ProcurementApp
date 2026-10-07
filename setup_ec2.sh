@@ -49,6 +49,8 @@ pip install --no-cache-dir -r backend/requirements.txt
 cd backend
 python manage.py migrate
 python manage.py collectstatic --noinput || true
+# Pre-warm vector database and sentence transformer cache
+python -c "from api.recommend_engine import populate_database; populate_database()" || true
 cd ..
 
 echo "=== [4/6] Building React Frontend ==="
@@ -56,6 +58,10 @@ cd frontend
 npm install
 npm run build
 cd ..
+
+# Fix permissions so Nginx (www-data) can access frontend/dist
+sudo chmod 755 /home/ubuntu
+sudo chmod -R 755 /home/ubuntu/ProcurementApp/frontend/dist
 
 echo "=== [5/6] Setting up Gunicorn Systemd Service ==="
 sudo bash -c "cat > /etc/systemd/system/procurement.service << 'EOF'
@@ -68,14 +74,14 @@ User=ubuntu
 Group=www-data
 WorkingDirectory=/home/ubuntu/ProcurementApp/backend
 Environment=\"PATH=/home/ubuntu/ProcurementApp/venv/bin\" \"AWS_REGION=ap-south-1\"
-ExecStart=/home/ubuntu/ProcurementApp/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 backend.wsgi:application
+ExecStart=/home/ubuntu/ProcurementApp/venv/bin/gunicorn --workers 1 --timeout 120 --bind 127.0.0.1:8000 backend.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
 EOF"
 
 sudo systemctl daemon-reload
-sudo systemctl start procurement
+sudo systemctl restart procurement
 sudo systemctl enable procurement
 
 echo "=== [6/6] Configuring Nginx Reverse Proxy ==="
