@@ -30,10 +30,13 @@ PROJECT_DIR="/home/ubuntu/ProcurementApp"
 cd "$PROJECT_DIR"
 
 echo "=== [3/6] Setting up Python virtual environment & backend ==="
+mkdir -p /home/ubuntu/tmp
+export TMPDIR=/home/ubuntu/tmp
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
-pip install -r backend/requirements.txt
+pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+pip install --no-cache-dir -r backend/requirements.txt
 
 cd backend
 python manage.py migrate
